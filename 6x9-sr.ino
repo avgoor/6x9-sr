@@ -47,7 +47,7 @@ void draw_cycle()
     data = 0b0000001111111111;
     digitalWrite(LATCH, LOW);
     data |= (matrix[y] & 0xFC) << 8;
-    data ^= (1 << (1 + y)); // activating y-th column; it's reversed since screen is reversed
+    data &= ~(1UL << (1 + y)); // activating y-th column; it's reversed since screen is reversed
 /*
      char strx[64];
         sprintf(strx, "%08X:00ff=(%02X):ff00=(%02X)\n", data, data & 0x00FF, data & 0xFF00);
@@ -63,7 +63,7 @@ void draw_cycle()
 void loop()
 {
   push_rnd();
-  for (int i = 0; i < 200; i++)
+  for (int i = 0; i < 100; i++)
   {
     draw_cycle();
   };
