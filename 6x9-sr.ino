@@ -32,7 +32,7 @@ void setup() {
 
 /*
   This is a silly function that pushes random dots on top of the matrix
-  and shifts its content down making some unspecacular effect of faling dots
+  and shifts its content down making some unspectacular effect of falling dots
 */
 void push_rnd() {
   unsigned long int randomNumber = random(0, 65535);
@@ -61,7 +61,7 @@ void draw_cycle() {
 
 void loop() {
   // this cycle works as a delay
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 10; i++) {
     draw_cycle();
   };
   push_rnd();
