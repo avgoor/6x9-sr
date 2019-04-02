@@ -12,15 +12,7 @@
    2 less significant bits are useless
 */
 byte matrix[NCOLS] = {
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100,
-  0b11111100
+  0x60,0x90,0x90,0x88,0x44,0x88,0x90,0x90,0x60
 };
 
 void setup() {
@@ -36,9 +28,27 @@ void setup() {
 */
 void push_rnd() {
   unsigned long int randomNumber = random(0, 65535);
-  for (int i = 0; i < NCOLS; i++) {
+  for (short int i = 0; i < NCOLS; i++) {
     matrix[i] = matrix[i] >> 1;
     matrix[i] |= (randomNumber >> i) << 7;
+  };
+};
+
+void rollDown() {
+  byte tmp;
+  for (short i = 0; i < NCOLS; i++){
+    tmp = (matrix[i] & 0x1) << 7; // take the last line and shift it up to the MSB
+    matrix[i] = matrix[i] >> 1;
+    matrix[i] |= tmp;
+  };
+};
+
+void rollUp() {
+  byte tmp;
+  for (short i = 0; i < NCOLS; i++){
+    tmp = (matrix[i] & 0x80) >> 7; // take the first line and shift it up to the LSB
+    matrix[i] = matrix[i] << 1;
+    matrix[i] |= tmp;
   };
 };
 
@@ -46,23 +56,37 @@ void draw_cycle() {
   /* drawing by columns
      6 most significant bits are rows addresses
      all others are columns except the first one */
-  unsigned int data = 0b0000001111111111;
-  for (int y = 0; y < NCOLS; y++) {
-    data = 0b0000001111111111;
+  byte data_msb, data_lsb;
+  for (short y = 0; y < NCOLS; y++) {
+    data_msb = 0b00000011;
+    data_lsb = 0b11111111;
     digitalWrite(LATCH, LOW);
-    data |= (matrix[y] & 0xFC) << 8;  // fill the MSB with the row's data
-    data &= ~(1UL << (1 + y));        // activate the Y-th column
+    data_msb |= (matrix[y] & 0xFC);   // fill the MSB with the row's data
+    if (y > 6) {
+      data_msb &= ~(0x01 << (y - 7)); // columns are split between two shift registers
+    } else {
+      data_lsb &= ~(0x01 << (1 + y)); // activate the Y-th column
                                       // it's reversed since the screen is reversed
-    shiftOut(SER, CLK, LSBFIRST, data);
-    shiftOut(SER, CLK, LSBFIRST, (data >> 8));
+    };
+    shiftOut(SER, CLK, LSBFIRST, data_lsb);
+    shiftOut(SER, CLK, LSBFIRST, data_msb);
     digitalWrite(LATCH, HIGH);
   };
 };
 
+short count = 0;
+short direction = 0; // 0 - down, 1 - up
+
 void loop() {
   // this cycle works as a delay
-  for (int i = 0; i < 10; i++) {
+  for (short i = 0; i < 50; i++) {
     draw_cycle();
   };
-  push_rnd();
+  if (count++ % 8 == 0) direction = direction > 0 ? 0 : 1;
+  if (0 == direction) {
+    rollDown();
+  } else {
+    rollUp();
+  };
 }
+
