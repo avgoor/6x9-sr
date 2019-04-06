@@ -74,19 +74,20 @@ void draw_cycle() {
   };
 };
 
-short count = 0;
-short direction = 0; // 0 - down, 1 - up
+unsigned short count = 0;
+unsigned short direction = 0; // 0 - down, 1 - up
 
 void loop() {
   // this cycle works as a delay
   for (short i = 0; i < 50; i++) {
     draw_cycle();
   };
-  if (count++ % 8 == 0) direction = direction > 0 ? 0 : 1;
+  if (count++ % 8 == 0) {
+    direction = direction > 0 ? 0 : 1;
+  };
   if (0 == direction) {
     rollDown();
   } else {
     rollUp();
   };
 }
-
